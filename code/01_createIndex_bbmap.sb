@@ -1,0 +1,35 @@
+#!/bin/bash -login
+
+#SBATCH --time=03:59:00
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=16
+#SBATCH --mem=64G
+#SBATCH --job-name b02index
+#SBATCH -o slurm-%A_bbmap.out
+
+cd ${SLURM_SUBMIT_DIR}
+cores="$SLURM_CPUS_PER_TASK"
+RAM="$SLURM_MEM_PER_NODE"
+
+echo -e "\n========== Project paths ==========\n"
+
+source config.yaml
+
+echo -e "\n========== Sub-directories ==========\n"
+echo "mkdir -p $output_dir/GenomeIndex_bbmap/"; mkdir -p $output_dir/GenomeIndex_bbmap/
+
+echo -e "\n========== bbmap indexing contig for file: $Contigs ==========\n"
+conda activate bbmap
+
+bbmap.sh \
+	ref=$project_dir/Tmel_reference/Tmelanosporum_Hi-C_assembly.fasta \
+	path=$output_dir/GenomeIndex_bbmap \
+	threads=$cores
+
+conda deactivate
+
+echo -e "\n========== Sbatch log ==========\n"
+echo -e "\n Current directory: `pwd` \n"
+echo -e "\n `sacct -u benucci -j $SLURM_JOB_ID --format=JobID,JobName,Start,End,Elapsed,NCPUS,ReqMem` \n"
+scontrol show job $SLURM_JOB_ID

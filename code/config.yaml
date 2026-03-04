@@ -1,0 +1,20 @@
+# Config file for metagenome-tax-pipe
+
+#echo -e "Reading autopipe v.1 config.yaml"
+project_dir="/mnt/research/bonito_lab/truffle_metagenome/Tuber_melanosporum_metagenome"
+output_dir="/mnt/research/bonito_lab/truffle_metagenome/Tuber_melanosporum_metagenome/outputs"
+raw_dir="/mnt/research/bonito_lab/truffle_metagenome/data/raw_data"
+
+# Databases
+#NCBI_nt="/mnt/research/EvansLab/DATABASES/NCBInt_feb23"
+#kraken2_db="/mnt/research/EvansLab/DATABASES/kraken2_db_feb23"
+
+# For now I use the busco I have in the ShadeLab dir
+#busco_db="/mnt/research/ShadeLab/Benucci/databases/busco_db1022/bacteria_odb10"
+
+# exported PATHs
+#export EGGNOG_DATA_DIR=/mnt/research/EvansLab/DATABASES/eggnog_db/
+#export BLASTDB=/mnt/research/EvansLab/DATABASES/NCBInt_feb23/taxdb
+
+# Variables
+#LENGTH=1000

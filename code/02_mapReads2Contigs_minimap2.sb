@@ -1,0 +1,106 @@
+#!/bin/bash -login
+
+#SBATCH --time=03:59:00
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=16
+#SBATCH --mem=64G
+#SBATCH --job-name minimap2
+#SBACTH -A shade-cole-bonito
+#SBATCH -o slurm-%A_mapRead2Contigs_minimap2.out
+
+cd ${SLURM_SUBMIT_DIR}
+cores="$SLURM_CPUS_PER_TASK"
+RAM="$SLURM_MEM_PER_NODE"
+
+echo -e "MIT LICENSE - Copyright © 2023 Benucci
+email: benucci[at]msu[dot]edu\n"
+
+echo -e "\n========== Project paths ==========\n"
+
+source config.yaml
+
+echo -e "\n========== Sub-directories ==========\n"
+echo "mkdir -p $output_dir/Reads2Contigs_minimap2/"; mkdir -p $output_dir/Reads2Contigs_minimap2/
+
+echo -e "\n========== cat all nanopore reads ==========\n"
+
+find $raw_dir/AdaptiveSeq_Nanopore/ -type f -name "*.fastq.gz" -exec cat {} + > $output_dir/Reads2Contigs_minimap2/combined.fastq.gz
+
+echo -e "\n========== minimap2 alignment ==========\n"
+module purge
+module load Miniforge3
+conda activate minimap2
+echo -e "minimap2 version: `minimap2 --version`"
+
+minimap2 \
+	-ax map-ont \
+	-t $cores \
+	-2 \
+	$project_dir/reference_genome/Tmelanosporum_Hi-C_assembly.fasta \
+	$output_dir/Reads2Contigs_minimap2/combined.fastq.gz > $output_dir/Reads2Contigs_minimap2/aln.sam
+
+conda deactivate
+
+echo -e "\n========== samtools view ==========\n" 
+
+conda activate samtools
+
+samtools view \
+	-@ $cores \
+	-hb \
+	-S $output_dir/Reads2Contigs_minimap2/aln.sam \
+	-o $output_dir/Reads2Contigs_minimap2/aln.view.bam
+
+echo -e "\n========== samtools sort ==========\n" 
+
+samtools sort \
+	-@ $cores \
+	$output_dir/Reads2Contigs_minimap2/aln.view.bam \
+	-o $output_dir/Reads2Contigs_minimap2/aln.sorted.bam 
+
+echo -e "\n========== samtools index ==========\n" 
+
+samtools index \
+	-@ $cores \
+	$output_dir/Reads2Contigs_minimap2/aln.sorted.bam
+
+samtools view \
+	-@ $cores \
+	-c -F 4 \
+	$output_dir/Reads2Contigs_minimap2/aln.sorted.bam \
+	-o $output_dir/Reads2Contigs_minimap2/aln.sorted.mapped_reads.bam
+
+samtools view \
+	-F 4 -h $output_dir/Reads2Contigs_minimap2/aln.sorted.bam \
+	| grep -v '^@' | awk '{s+=length($10)} END {print s}' > \
+	$output_dir/Reads2Contigs_minimap2/aln.sorted.mapped_bp.bam
+
+samtools view \
+	-s 0.1 \
+	-b \
+	-o $output_dir/Reads2Contigs_minimap2/aln.subset.bam \
+	$output_dir/Reads2Contigs_minimap2/aln.sorted.bam
+
+conda deactivate
+
+echo -e "\n========== qualimap mabqc ==========\n" 
+
+conda activate qualimap
+
+qualimap bamqc \
+	-bam $output_dir/Reads2Contigs_minimap2/aln.subset.bam \
+	-outdir $output_dir/Reads2Contigs_minimap2/qualimap_evaluation/ \
+	-outfile $output_dir/Reads2Contigs_minimap2/qualimap_evaluation/qualimap.html \
+	-outformat html
+
+conda deactivate
+
+echo -e "\n========== remove files ==========\n"
+find $project_dir/outputs/07_assemblyeval_minimap2-qualimap/${file%.*}/ -type f -name "*.sam" -print0 | xargs -0 rm -rf
+find $project_dir/outputs/07_assemblyeval_minimap2-qualimap/${file%.*}/ -type f -name "*.bam" -print0 | xargs -0 rm -rf
+
+echo -e "\n========== Sbatch log ==========\n"
+echo -e "\n Current directory: `pwd` \n"
+echo -e "\n `sacct -u $USER -j $SLURM_JOB_ID --format=JobID,JobName,Start,End,Elapsed,NCPUS,ReqMem` \n"
+scontrol show job $SLURM_JOB_ID

@@ -1,0 +1,58 @@
+#!/bin/bash -login
+
+#SBATCH --time=24:00:00
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=16
+#SBATCH --mem=64G
+#SBACTH -A shade-cole-bonito
+#SBATCH --job-name metaquast
+#SBATCH -o slurm-%A_metaquast.out
+
+cd ${SLURM_SUBMIT_DIR}
+cores="$SLURM_CPUS_PER_TASK"
+RAM="$SLURM_MEM_PER_NODE"
+
+echo -e "\n========== Project paths ==========\n"
+
+source ./config.yaml
+
+echo -e "metaGAAP v. 1.0 - metaGenome Assembly and Annotation Pipeline
+MIT LICENSE - Copyright © 2022 Benucci Jones Broderick
+email: benucci[at]msu[dot]edu\n"
+
+echo -e "\n========== Sub-directories ==========\n"
+#echo "mkdir -p $output_dir/map2Reference_metaquast/"; mkdir -p $output_dir/map2Reference_metaquast/
+
+#echo -e "\n========== pool reads abd convert to fasta ==========\n"
+#find $project_dir/AdaptiveSeq_Nanopore/ -type f -name "*.fastq.gz" -exec cat {} + > $output_dir/Reads2Contigs_bbmap/combined.fastq.gz
+
+#conda activate seqtk 
+
+#seqtk seq -aQ64 $output_dir/Reads2Contigs_bbmap/combined.fastq.gz > $output_dir/Reads2Contigs_bbmap/combined.fasta
+
+#conda deactivate
+
+echo -e "\n========== metaquast ==========\n"
+module purge
+module load Miniforge3
+conda activate quast
+echo "version of `quast --version`" 
+
+metaquast.py \
+	--threads $cores \
+	--no-icarus \
+	-r $raw_dir/reference_genome/Tmelanosporum_Hi-C_assembly.fasta \
+	--nanopore $output_dir/Reads2Contigs_minimap2/combined.fastq.gz \
+	-o $output_dir/map2Reference_metaquast/ \
+	$output_dir/Reads2Contigs_minimap2/combined.fastq.gz
+
+conda deactivate
+
+# ERROR! Cannot established internet connection to download reference genomes!
+# try the fix proposed by https://github.com/ablab/quast/issues/8
+# See README.md for details.
+echo -e "\n========== Sbatch log ==========\n"
+echo -e "\n Current directory: `pwd` \n"
+echo -e "\n `sacct -u $USER -j $SLURM_JOB_ID --format=JobID,JobName,Start,End,Elapsed,NCPUS,ReqMem` \n"
+scontrol show job $SLURM_JOB_ID

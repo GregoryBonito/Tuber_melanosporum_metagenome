@@ -20,10 +20,15 @@ echo -e "\n========== Sub-directories ==========\n"
 echo "mkdir -p $output_dir/GenomeIndex_bbmap/"; mkdir -p $output_dir/GenomeIndex_bbmap/
 
 echo -e "\n========== bbmap indexing contig for file: $Contigs ==========\n"
+module purge
+module load Miniforge3
 conda activate bbmap
+echo "\n"
+conda env list
+echo "\n"
 
 bbmap.sh \
-	ref=$project_dir/Tmel_reference/Tmelanosporum_Hi-C_assembly.fasta \
+	ref=$project_dir/reference_genome/Tmelanosporum_Hi-C_assembly.fasta \
 	path=$output_dir/GenomeIndex_bbmap \
 	threads=$cores
 
@@ -31,5 +36,5 @@ conda deactivate
 
 echo -e "\n========== Sbatch log ==========\n"
 echo -e "\n Current directory: `pwd` \n"
-echo -e "\n `sacct -u benucci -j $SLURM_JOB_ID --format=JobID,JobName,Start,End,Elapsed,NCPUS,ReqMem` \n"
+echo -e "\n `sacct -u $USER -j $SLURM_JOB_ID --format=JobID,JobName,Start,End,Elapsed,NCPUS,ReqMem` \n"
 scontrol show job $SLURM_JOB_ID

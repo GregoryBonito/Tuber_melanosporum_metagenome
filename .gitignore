@@ -2,3 +2,6 @@
 
 reference_genome/
 reference_genome/*
+outputs/
+outputs/*
+code/slurm*

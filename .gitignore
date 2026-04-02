@@ -1,4 +1,4 @@
 # files and directory to ignore
 
-data/
-data/*
+reference_genome/
+reference_genome/*

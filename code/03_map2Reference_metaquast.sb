@@ -27,13 +27,10 @@ echo -e "\n========== Sub-directories ==========\n"
 #echo "mkdir -p $output_dir/map2Reference_metaquast/"; mkdir -p $output_dir/map2Reference_metaquast/
 
 #echo -e "\n========== convert to fasta ==========\n"
-#find $project_dir/AdaptiveSeq_Nanopore/ -type f -name "*.fastq.gz" -exec cat {} + > $output_dir/Reads2Contigs_bbmap/combined.fastq.gz
 
 conda activate bbmap 
 
 reformat.sh in=$output_dir/Reads2Contigs_minimap2/combined.fastq.gz out=$output_dir/Reads2Contigs_minimap2/combined.fasta
-
-#seqtk seq -aQ64 $output_dir/Reads2Contigs_bbmap/combined.fastq.gz > $output_dir/Reads2Contigs_bbmap/combined.fasta
 
 conda deactivate
 

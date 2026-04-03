@@ -28,7 +28,7 @@ conda env list
 echo "\n"
 
 bbmap.sh \
-	ref=$project_dir/reference_genome/Tmelanosporum_Hi-C_assembly.fasta \
+	ref=$raw_dir/reference_genome/Tmelanosporum_Hi-C_assembly.fasta \
 	path=$output_dir/GenomeIndex_bbmap \
 	threads=$cores
 

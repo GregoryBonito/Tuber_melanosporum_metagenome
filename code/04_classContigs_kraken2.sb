@@ -1,0 +1,67 @@
+#!/bin/bash -login
+
+#SBATCH --time=24:00:00
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=64
+#SBATCH --mem=256G
+#SBATCH --job-name Classkraken2
+#SBATCH -A shade-cole-bonito
+#SBATCH -o slurm-%A_ClassReads-kraken2.out
+
+cd ${SLURM_SUBMIT_DIR}
+cores="$SLURM_CPUS_PER_TASK"
+RAM="$SLURM_MEM_PER_NODE"
+
+echo -e "\n========== Project paths ==========\n"
+
+source ./config.yaml
+
+echo -e "\n========== Sub-directories ==========\n"
+
+echo -e "mkdir -p $project_dir/outputs/taxCalssReads_kraken2"; mkdir -p $project_dir/outputs/taxCalssReads_kraken2
+
+echo -e "\n========== Kraken2 ==========\n"
+
+for file in $project_dir/AdaptiveSeq_Nanopore/fastq_pass09/barcode*/*fastq.gz; do
+
+	echo -e "\n========== Taxonomic classificaiton for file: $file ==========\n"
+	echo -e "\n"
+
+	name=$(echo $file | cut -d"/" -f9 | cut -d"." -f1)
+
+
+	conda activate kraken2
+
+	echo -e "version of Kraken2: `kraken2 --version`" 
+	mkdir $project_dir/outputs/taxCalssReads_kraken2/${name}
+		
+	kraken2 \
+		--memory-mapping \
+		--threads $cores \
+		--db $kraken2_db \
+		--output $project_dir/outputs/taxCalssReads_kraken2/${name}/kraken2_output.txt \
+		--report $project_dir/outputs/taxCalssReads_kraken2/${name}/kraken2_report.txt \
+		$file
+
+	conda deactivate
+
+	echo -e "\n========== Abundance estimation for file: $file ==========\n"
+
+	conda activate bracken
+	echo -e "version of Bracken: `bracken --help`" 
+	bracken \
+		-r 100 \
+		-l D \
+		-d $kraken2_db \
+		-i $project_dir/outputs/taxCalssReads_kraken2/${name}/kraken2_report.txt \
+		-o $project_dir/outputs/taxCalssReads_kraken2/${name}/bracken_report.txt
+
+	conda deactivate
+done
+
+# Kraken/brachen databases https://benlangmead.github.io/aws-indexes/k2
+echo -e "\n========== Sbatch log ==========\n"
+echo -e "\n Current directory: `pwd` \n"
+echo -e "\n `sacct -u benucci -j $SLURM_JOB_ID --format=JobID,JobName,Start,End,Elapsed,NCPUS,ReqMem` \n"
+scontrol show job $SLURM_JOB_ID

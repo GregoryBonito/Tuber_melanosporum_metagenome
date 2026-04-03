@@ -37,7 +37,7 @@ minimap2 \
 	-ax map-ont \
 	-t $cores \
 	-2 \
-	$project_dir/reference_genome/Tmelanosporum_Hi-C_assembly.fasta \
+	$raw_dir/reference_genome/Tmelanosporum_Hi-C_assembly.fasta \
 	$output_dir/Reads2Contigs_minimap2/combined.fastq.gz > $output_dir/Reads2Contigs_minimap2/aln.sam
 
 conda deactivate
@@ -95,10 +95,6 @@ qualimap bamqc \
 	-outformat html
 
 conda deactivate
-
-echo -e "\n========== remove files ==========\n"
-find $project_dir/outputs/07_assemblyeval_minimap2-qualimap/${file%.*}/ -type f -name "*.sam" -print0 | xargs -0 rm -rf
-find $project_dir/outputs/07_assemblyeval_minimap2-qualimap/${file%.*}/ -type f -name "*.bam" -print0 | xargs -0 rm -rf
 
 echo -e "\n========== Sbatch log ==========\n"
 echo -e "\n Current directory: `pwd` \n"

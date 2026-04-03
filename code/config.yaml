@@ -3,7 +3,7 @@
 #echo -e "Reading autopipe v.1 config.yaml"
 project_dir="/mnt/research/bonito_lab/truffle_metagenome/Tuber_melanosporum_metagenome"
 output_dir="/mnt/research/bonito_lab/truffle_metagenome/Tuber_melanosporum_metagenome/outputs"
-raw_dir="/mnt/research/bonito_lab/truffle_metagenome/data"
+raw_dir="/mnt/research/bonito_lab/truffle_metagenome/Tuber_melanosporum_metagenome/data"
 
 # Databases
 #NCBI_nt="/mnt/research/EvansLab/DATABASES/NCBInt_feb23"
@@ -18,3 +18,7 @@ raw_dir="/mnt/research/bonito_lab/truffle_metagenome/data"
 
 # Variables
 #LENGTH=1000
+
+# remove interfering modules and load conda module
+module purge
+module load Miniforge3

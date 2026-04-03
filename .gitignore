@@ -1,7 +1,7 @@
 # files and directory to ignore
 
-reference_genome/
-reference_genome/*
-outputs/
-outputs/*
+data/
+data/*
+outputs*/
+outputs*/*
 code/slurm*
